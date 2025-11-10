@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Real-time competitive intelligence dashboard tracking major technology sector stock performance">
+    <meta property="og:title" content="Competitive Intelligence Dashboard">
+    <meta property="og:description" content="Technology Sector Stock Analysis">
+    <title>Competitive Intelligence Dashboard | Stock Tracker</title>
+    <style>
+        /* CSS Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* Header Section */
+        .header {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            padding: 40px 30px;
+            text-align: center;
+            border-bottom: 4px solid #00d4ff;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #a0d8f1;
+            font-weight: 300;
+        }
+
+        /* Content Area */
+        .content {
+            padding: 40px 30px;
+            background: #ffffff;
+            color: #333333;
+        }
+
+        /* Controls Section */
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .timestamp {
+            color: #666;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-refresh {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-refresh:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(245, 87, 108, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+        }
+
+        th {
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #e0e0e0;
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        td {
+            padding: 20px 15px;
+            font-size: 1rem;
+            color: #333;
+        }
+
+        .company-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .ticker {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            color: #555;
+            background: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .price {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .indicator {
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        /* Price Highlighting */
+        .highest-price {
+            color: #22c55e;
+            background: #f0fdf4;
+        }
+
+        .lowest-price {
+            color: #ef4444;
+            background: #fef2f2;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.2rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* Error State */
+        .error {
+            text-align: center;
+            padding: 40px 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .error-icon {
+            font-size: 3rem;
+            color: #ef4444;
+            margin-bottom: 15px;
+        }
+
+        .error-message {
+            font-size: 1.2rem;
+            color: #991b1b;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .error-details {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
+
+            .content {
+                padding: 20px 15px;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .button-group {
+                width: 100%;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            th, td {
+                padding: 12px 8px;
+                font-size: 0.9rem;
+            }
+
+            .price {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            th, td {
+                padding: 10px 6px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Competitive Intelligence Dashboard</h1>
+            <p>Technology Sector Stock Analysis</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Controls -->
+            <div class="controls">
+                <div class="timestamp" id="timestamp"></div>
+                <div class="button-group">
+                    <button class="btn-refresh" id="refreshBtn" onclick="fetchStockData()">
+                        🔄 Refresh Data
+                    </button>
+                    <button class="btn-export" id="exportBtn" onclick="exportToCSV()">
+                        📥 Export to CSV
+                    </button>
+                </div>
+            </div>
+
+            <!-- Data Display Area -->
+            <div id="dataDisplay"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global state management
+        let stockData = [];
+
+        /**
+         * Fetches stock data from the serverless API
+         * Handles loading states and error scenarios
+         */
+        async function fetchStockData() {
+            const displayArea = document.getElementById('dataDisplay');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const exportBtn = document.getElementById('exportBtn');
+
+            // Show loading state
+            displayArea.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Fetching latest data...</div>
+                </div>
+            `;
+
+            // Disable buttons during fetch
+            refreshBtn.disabled = true;
+            exportBtn.disabled = true;
+
+            try {
+                // Call the serverless function
+                const response = await fetch('/api/stocks');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.message || 'Failed to fetch data');
+                }
+
+                // Store data globally
+                stockData = result.data;
+
+                // Update timestamp
+                const timestamp = new Date(result.timestamp);
+                document.getElementById('timestamp').textContent = 
+                    `Last updated: ${timestamp.toLocaleString()}`;
+
+                // Render the table
+                renderTable(stockData);
+
+            } catch (error) {
+                console.error('Error fetching stock data:', error);
+                displayArea.innerHTML = `
+                    <div class="error">
+                        <div class="error-icon">⚠️</div>
+                        <div class="error-message">Unable to load data</div>
+                        <div class="error-details">Please try again later or contact support if the issue persists.</div>
+                    </div>
+                `;
+            } finally {
+                // Re-enable buttons
+                refreshBtn.disabled = false;
+                exportBtn.disabled = false;
+            }
+        }
+
+        /**
+         * Renders stock data in a professional table format
+         * Highlights highest and lowest prices
+         * @param {Array} data - Array of stock objects
+         */
+        function renderTable(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('dataDisplay').innerHTML = `
+                    <div class="error">
+                        <div class="error-message">No data available</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Find highest and lowest prices
+            const prices = data.map(stock => stock.price);
+            const maxPrice = Math.max(...prices);
+            const minPrice = Math.min(...prices);
+
+            // Build table HTML
+            let tableHTML = `
+                <div class="table-container fade-in">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Ticker</th>
+                                <th>Current Price</th>
+                                <th>Indicator</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            // Add rows for each stock
+            data.forEach(stock => {
+                const isHighest = stock.price === maxPrice;
+                const isLowest = stock.price === minPrice;
+                const priceClass = isHighest ? 'highest-price' : (isLowest ? 'lowest-price' : '');
+                const indicator = isHighest ? '▲' : (isLowest ? '▼' : '●');
+
+                tableHTML += `
+                    <tr>
+                        <td class="company-name">${stock.company}</td>
+                        <td><span class="ticker">${stock.ticker}</span></td>
+                        <td class="price ${priceClass}">$${stock.price.toFixed(2)}</td>
+                        <td class="indicator ${priceClass}">${indicator}</td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            document.getElementById('dataDisplay').innerHTML = tableHTML;
+        }
+
+        /**
+         * Exports current stock data to CSV format
+         * Downloads file automatically
+         */
+        function exportToCSV() {
+            if (!stockData || stockData.length === 0) {
+                alert('No data available to export. Please refresh the data first.');
+                return;
+            }
+
+            // Create CSV header
+            let csv = 'Company,Ticker,Current Price,Timestamp\n';
+
+            // Add data rows
+            stockData.forEach(stock => {
+                csv += `"${stock.company}","${stock.ticker}","${stock.price.toFixed(2)}","${new Date(stock.timestamp).toLocaleString()}"\n`;
+            });
+
+            // Create blob and download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `stock_data_${Date.now()}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Initialize dashboard on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchStockData();
+        });
+
+        // Auto-refresh every 5 minutes (optional)
+        // setInterval(fetchStockData, 300000);
+    </script>
+</body>
+</html>
