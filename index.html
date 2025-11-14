@@ -72,6 +72,45 @@
             justify-content: space-between;
         }
 
+        .tab-navigation {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            border: 2px solid transparent;
+            color: #1f2937;
+            background: #e5f2ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 16px rgba(59, 130, 246, 0.25);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: #ffffff;
+            box-shadow: 0 8px 16px rgba(99, 102, 241, 0.4);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
         .timestamp {
             color: #666;
             font-size: 0.9rem;
@@ -119,6 +158,111 @@
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .transcript-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .transcript-controls label {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .transcript-controls select {
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-size: 1rem;
+            background: #ffffff;
+            color: #111827;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
+        }
+
+        .transcript-container {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 16px 30px rgba(15, 23, 42, 0.15);
+            color: #1f2937;
+            min-height: 200px;
+        }
+
+        .transcript-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .transcript-meta h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .transcript-meta .meta-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 24px;
+            font-size: 0.95rem;
+            color: #475569;
+        }
+
+        .transcript-participants {
+            list-style: none;
+            padding-left: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 20px;
+            margin: 0;
+            color: #334155;
+        }
+
+        .transcript-body {
+            border-top: 1px solid rgba(148, 163, 184, 0.3);
+            padding-top: 20px;
+            max-height: 420px;
+            overflow-y: auto;
+        }
+
+        .transcript-segment {
+            margin-bottom: 18px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+        }
+
+        .segment-speaker {
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+
+        .segment-role {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            margin-left: 8px;
+        }
+
+        .segment-text {
+            color: #334155;
+            line-height: 1.7;
+        }
+
+        .transcript-body p {
+            margin-bottom: 14px;
+            color: #334155;
+            line-height: 1.7;
+        }
+
+        .transcript-body p:last-child {
+            margin-bottom: 0;
         }
 
         /* Table Styles */
@@ -298,6 +442,16 @@
                 width: 100%;
             }
 
+            .transcript-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .transcript-controls select,
+            .transcript-controls button {
+                width: 100%;
+            }
+
             th, td {
                 padding: 12px 8px;
                 font-size: 0.9rem;
@@ -338,27 +492,54 @@
 
         <!-- Main Content -->
         <div class="content">
-            <!-- Controls -->
-            <div class="controls">
-                <div class="timestamp" id="timestamp"></div>
-                <div class="button-group">
-                    <button class="btn-refresh" id="refreshBtn" onclick="fetchStockData()">
-                        🔄 Refresh Data
-                    </button>
-                    <button class="btn-export" id="exportBtn" onclick="exportToCSV()">
-                        📥 Export to CSV
-                    </button>
-                </div>
+            <div class="tab-navigation">
+                <button class="tab-button active" data-tab="prices">📈 Stock Prices</button>
+                <button class="tab-button" data-tab="transcripts">📝 Earnings Transcripts</button>
             </div>
 
-            <!-- Data Display Area -->
-            <div id="dataDisplay"></div>
+            <div id="pricesTab" class="tab-panel active">
+                <!-- Controls -->
+                <div class="controls">
+                    <div class="timestamp" id="timestamp"></div>
+                    <div class="button-group">
+                        <button class="btn-refresh" id="refreshBtn" onclick="fetchStockData()">
+                            🔄 Refresh Data
+                        </button>
+                        <button class="btn-export" id="exportBtn" onclick="exportToCSV()">
+                            📥 Export to CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Data Display Area -->
+                <div id="dataDisplay"></div>
+            </div>
+
+            <div id="transcriptsTab" class="tab-panel">
+                <div class="transcript-controls">
+                    <label for="transcriptTicker">Select Stock</label>
+                    <select id="transcriptTicker" aria-label="Select stock ticker for transcript">
+                        <option value="MSFT">Microsoft (MSFT)</option>
+                        <option value="AAPL" disabled>Apple (coming soon)</option>
+                        <option value="GOOGL" disabled>Alphabet (coming soon)</option>
+                        <option value="AMZN" disabled>Amazon (coming soon)</option>
+                        <option value="META" disabled>Meta Platforms (coming soon)</option>
+                    </select>
+                    <button class="btn-refresh" id="transcriptFetchBtn">🔎 Load Transcript</button>
+                </div>
+                <div class="timestamp" id="transcriptStatus"></div>
+                <div id="transcriptDisplay" class="transcript-container"></div>
+            </div>
         </div>
     </div>
 
     <script>
         // Global state management
         let stockData = [];
+        const transcriptCache = {};
+        let activeTab = 'prices';
+        let hasLoadedInitialTranscript = false;
+        const transcriptAvailabilityMessage = 'Available transcripts: Microsoft (MSFT)';
 
         /**
          * Fetches stock data from the serverless API
@@ -484,6 +665,289 @@
         }
 
         /**
+         * Toggles visible tab based on user selection
+         * @param {string} tab - Tab key to activate
+         */
+        function setActiveTab(tab) {
+            if (!tab || tab === activeTab) {
+                return;
+            }
+
+            activeTab = tab;
+
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.toggle('active', button.dataset.tab === tab);
+            });
+
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.toggle('active', panel.id === `${tab}Tab`);
+            });
+
+            if (tab === 'transcripts' && !hasLoadedInitialTranscript) {
+                hasLoadedInitialTranscript = true;
+                fetchTranscript();
+            }
+        }
+
+        /**
+         * Escapes HTML special characters to prevent XSS
+         * @param {string} value - Raw string input
+         * @returns {string}
+         */
+        function escapeHTML(value) {
+            if (typeof value !== 'string') {
+                return '';
+            }
+
+            return value
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        /**
+         * Converts multiline text into HTML paragraphs
+         * @param {string} text - Transcript text
+         * @returns {string}
+         */
+        function convertTextToParagraphs(text) {
+            if (typeof text !== 'string') {
+                return '';
+            }
+
+            return text
+                .split(/\n{2,}/)
+                .map(paragraph => paragraph.trim())
+                .filter(Boolean)
+                .map(paragraph => {
+                    const sanitized = escapeHTML(paragraph);
+                    return `<p>${sanitized.replace(/\n/g, '<br>')}</p>`;
+                })
+                .join('');
+        }
+
+        /**
+         * Formats date strings for display
+         * @param {string} value - Date value in YYYY-MM-DD format
+         * @returns {string}
+         */
+        function formatDate(value) {
+            if (!value) {
+                return '';
+            }
+
+            const parsedDate = new Date(`${value}T00:00:00Z`);
+
+            if (Number.isNaN(parsedDate.getTime())) {
+                return value;
+            }
+
+            return parsedDate.toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        /**
+         * Converts earnings timing key to human readable text
+         * @param {string} value - Timing key (e.g. after_market)
+         * @returns {string}
+         */
+        function formatTiming(value) {
+            if (!value) {
+                return '';
+            }
+
+            return value
+                .split('_')
+                .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+                .join(' ');
+        }
+
+        /**
+         * Builds a status summary for transcript metadata
+         * @param {Object} transcript - Transcript payload
+         * @returns {string}
+         */
+        function formatTranscriptStatus(transcript) {
+            if (!transcript || typeof transcript !== 'object') {
+                return '';
+            }
+
+            const pieces = [];
+
+            if (transcript.date) {
+                pieces.push(`Earnings call date: ${formatDate(transcript.date)}`);
+            }
+
+            if (typeof transcript.timestamp === 'number') {
+                const eventDate = new Date(transcript.timestamp * 1000);
+
+                if (!Number.isNaN(eventDate.getTime())) {
+                    pieces.push(`Recorded: ${eventDate.toLocaleString()}`);
+                }
+            }
+
+            if (transcript.year && transcript.quarter) {
+                pieces.push(`Fiscal ${escapeHTML(String(transcript.year))} Q${escapeHTML(String(transcript.quarter))}`);
+            }
+
+            if (transcript.earnings_timing) {
+                pieces.push(`Timing: ${formatTiming(transcript.earnings_timing)}`);
+            }
+
+            return pieces.join(' • ');
+        }
+
+        /**
+         * Renders transcript details into the UI
+         * @param {Object} transcript - Transcript payload
+         */
+        function renderTranscript(transcript) {
+            const displayArea = document.getElementById('transcriptDisplay');
+
+            if (!transcript) {
+                displayArea.innerHTML = `
+                    <div class="error">
+                        <div class="error-message">No transcript data available</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const participants = Array.isArray(transcript.participants)
+                ? transcript.participants.filter(item => item && typeof item === 'object')
+                : [];
+
+            const participantMarkup = participants.length > 0
+                ? `<ul class="transcript-participants">
+                        ${participants.map(participant => {
+                            const name = escapeHTML(participant.name || 'Participant');
+                            const role = participant.role ? ` — ${escapeHTML(participant.role)}` : '';
+                            const company = participant.company ? `, ${escapeHTML(participant.company)}` : '';
+                            return `<li><strong>${name}</strong>${role}${company}</li>`;
+                        }).join('')}
+                   </ul>`
+                : '';
+
+            const segments = Array.isArray(transcript.transcript_split)
+                ? transcript.transcript_split.filter(item => item && typeof item === 'object')
+                : [];
+
+            let bodyContent = '';
+
+            if (segments.length > 0) {
+                bodyContent = segments.map(segment => {
+                    const speakerName = escapeHTML(segment.speaker || 'Speaker');
+                    const speakerRole = segment.role ? `<span class="segment-role">${escapeHTML(segment.role)}</span>` : '';
+                    return `
+                        <div class="transcript-segment">
+                            <div class="segment-speaker">${speakerName}${speakerRole}</div>
+                            <div class="segment-text">${convertTextToParagraphs(segment.text)}</div>
+                        </div>
+                    `;
+                }).join('');
+            } else if (typeof transcript.transcript === 'string' && transcript.transcript.trim() !== '') {
+                bodyContent = `<div class="segment-text">${convertTextToParagraphs(transcript.transcript)}</div>`;
+            } else {
+                bodyContent = `
+                    <div class="error">
+                        <div class="error-message">Transcript content is unavailable</div>
+                    </div>
+                `;
+            }
+
+            displayArea.innerHTML = `
+                <div class="transcript-meta">
+                    <h3>${escapeHTML((transcript.ticker || '').toUpperCase())} Earnings Call Transcript</h3>
+                    <div class="meta-grid">
+                        ${transcript.date ? `<span><strong>Date:</strong> ${formatDate(transcript.date)}</span>` : ''}
+                        ${transcript.year && transcript.quarter ? `<span><strong>Fiscal:</strong> FY ${escapeHTML(String(transcript.year))} Q${escapeHTML(String(transcript.quarter))}</span>` : ''}
+                        ${transcript.earnings_timing ? `<span><strong>Timing:</strong> ${formatTiming(transcript.earnings_timing)}</span>` : ''}
+                    </div>
+                    ${participantMarkup ? `<div><strong>Participants:</strong></div>${participantMarkup}` : ''}
+                </div>
+                <div class="transcript-body">
+                    ${bodyContent}
+                </div>
+            `;
+        }
+
+        /**
+         * Fetches earnings transcript for the selected ticker
+         * @param {boolean} [forceRefresh=false] - Skip cache when true
+         */
+        async function fetchTranscript(forceRefresh = false) {
+            const tickerSelect = document.getElementById('transcriptTicker');
+            const fetchBtn = document.getElementById('transcriptFetchBtn');
+            const displayArea = document.getElementById('transcriptDisplay');
+            const statusEl = document.getElementById('transcriptStatus');
+
+            const ticker = tickerSelect.value;
+
+            if (!ticker) {
+                statusEl.textContent = '';
+                displayArea.innerHTML = '';
+                return;
+            }
+
+            if (!forceRefresh && transcriptCache[ticker]) {
+                const cachedTranscript = transcriptCache[ticker];
+                renderTranscript(cachedTranscript);
+                statusEl.textContent = formatTranscriptStatus(cachedTranscript);
+                return;
+            }
+
+            displayArea.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Retrieving transcript...</div>
+                </div>
+            `;
+            statusEl.textContent = 'Loading transcript...';
+            fetchBtn.disabled = true;
+
+            try {
+                const response = await fetch(`/api/transcripts?ticker=${encodeURIComponent(ticker)}`);
+                let payload;
+
+                try {
+                    payload = await response.json();
+                } catch (parseError) {
+                    throw new Error(`Unable to parse transcript response (${response.status})`);
+                }
+
+                if (!response.ok || !payload.success) {
+                    throw new Error(payload?.error || `Request failed with status ${response.status}`);
+                }
+
+                const transcript = payload.data;
+                transcriptCache[ticker] = transcript;
+                renderTranscript(transcript);
+                statusEl.textContent = formatTranscriptStatus(transcript);
+            } catch (error) {
+                console.error('Error fetching transcript:', error);
+                statusEl.textContent = transcriptAvailabilityMessage;
+                const friendlyMessage = error.message && error.message.toLowerCase().includes('not found')
+                    ? 'We do not yet have a transcript for this ticker. Please check back soon.'
+                    : (error.message || 'Please try again later.');
+
+                displayArea.innerHTML = `
+                    <div class="error">
+                        <div class="error-icon">⚠️</div>
+                        <div class="error-message">Unable to load transcript</div>
+                        <div class="error-details">${escapeHTML(friendlyMessage)}</div>
+                    </div>
+                `;
+            } finally {
+                fetchBtn.disabled = false;
+            }
+        }
+
+        /**
          * Exports current stock data to CSV format
          * Downloads file automatically
          */
@@ -517,6 +981,34 @@
 
         // Initialize dashboard on page load
         document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('transcriptDisplay').innerHTML = `
+                <div class="transcript-meta">
+                    <h3>Earnings Call Transcripts</h3>
+                </div>
+                <div class="transcript-body">
+                    <p>Select "Load Transcript" to pull the most recent earnings call for the chosen stock.</p>
+                </div>
+            `;
+
+            document.getElementById('transcriptStatus').textContent = transcriptAvailabilityMessage;
+
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    setActiveTab(button.dataset.tab);
+                });
+            });
+
+            document.getElementById('transcriptFetchBtn').addEventListener('click', event => {
+                event.preventDefault();
+                fetchTranscript(true);
+            });
+
+            document.getElementById('transcriptTicker').addEventListener('change', () => {
+                if (activeTab === 'transcripts') {
+                    fetchTranscript();
+                }
+            });
+
             fetchStockData();
         });
 
