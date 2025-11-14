@@ -175,6 +175,7 @@
 
         .transcript-controls select,
         .transcript-controls input[type="text"] {
+        .transcript-controls select {
             padding: 12px 16px;
             border-radius: 8px;
             border: 1px solid #d1d5db;
@@ -527,6 +528,14 @@
                         aria-label="Enter stock ticker for transcript"
                         placeholder="e.g., MSFT"
                     />
+                    <label for="transcriptTicker">Select Stock</label>
+                    <select id="transcriptTicker" aria-label="Select stock ticker for transcript">
+                        <option value="MSFT">Microsoft (MSFT)</option>
+                        <option value="AAPL" disabled>Apple (coming soon)</option>
+                        <option value="GOOGL" disabled>Alphabet (coming soon)</option>
+                        <option value="AMZN" disabled>Amazon (coming soon)</option>
+                        <option value="META" disabled>Meta Platforms (coming soon)</option>
+                    </select>
                     <button class="btn-refresh" id="transcriptFetchBtn">🔎 Load Transcript</button>
                 </div>
                 <div class="timestamp" id="transcriptStatus"></div>
@@ -542,6 +551,7 @@
         let activeTab = 'prices';
         let hasLoadedInitialTranscript = false;
         const transcriptAvailabilityMessage = 'Enter a stock ticker (for example, MSFT) to request the latest earnings call transcript from API Ninjas.';
+        const transcriptAvailabilityMessage = 'Available transcripts: Microsoft (MSFT)';
 
         /**
          * Fetches stock data from the serverless API
@@ -768,6 +778,17 @@
             }
 
             return typeof value === 'string' ? escapeHTML(value) : String(value);
+            const parsedDate = new Date(`${value}T00:00:00Z`);
+
+            if (Number.isNaN(parsedDate.getTime())) {
+                return value;
+            }
+
+            return parsedDate.toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
         }
 
         /**
@@ -789,6 +810,8 @@
             return safeValue
                 .split(/[_\s]+/)
                 .filter(Boolean)
+            return value
+                .split('_')
                 .map(part => part.charAt(0).toUpperCase() + part.slice(1))
                 .join(' ');
         }
@@ -820,6 +843,12 @@
             if (typeof timestampValue === 'number') {
                 const multiplier = timestampValue > 1e12 ? 1 : 1000;
                 const eventDate = new Date(timestampValue * multiplier);
+            if (transcript.date) {
+                pieces.push(`Earnings call date: ${formatDate(transcript.date)}`);
+            }
+
+            if (typeof transcript.timestamp === 'number') {
+                const eventDate = new Date(transcript.timestamp * 1000);
 
                 if (!Number.isNaN(eventDate.getTime())) {
                     pieces.push(`Recorded: ${eventDate.toLocaleString()}`);
@@ -873,6 +902,14 @@
 
             if (source) {
                 pieces.push(`Source: ${escapeHTML(String(source))}`);
+            }
+
+            if (transcript.year && transcript.quarter) {
+                pieces.push(`Fiscal ${escapeHTML(String(transcript.year))} Q${escapeHTML(String(transcript.quarter))}`);
+            }
+
+            if (transcript.earnings_timing) {
+                pieces.push(`Timing: ${formatTiming(transcript.earnings_timing)}`);
             }
 
             return pieces.join(' • ');
@@ -936,11 +973,15 @@
                     return null;
                 })
                 .filter(Boolean);
+            const participants = Array.isArray(transcript.participants)
+                ? transcript.participants.filter(item => item && typeof item === 'object')
+                : [];
 
             const participantMarkup = participants.length > 0
                 ? `<ul class="transcript-participants">
                         ${participants.map(participant => {
                             const name = participant.name ? escapeHTML(participant.name) : 'Participant';
+                            const name = escapeHTML(participant.name || 'Participant');
                             const role = participant.role ? ` — ${escapeHTML(participant.role)}` : '';
                             const company = participant.company ? `, ${escapeHTML(participant.company)}` : '';
                             return `<li><strong>${name}</strong>${role}${company}</li>`;
@@ -1059,6 +1100,40 @@
                     <h3>${escapeHTML(heading)}</h3>
                     <div class="meta-grid">
                         ${metaEntries || '<span>Transcript metadata unavailable</span>'}
+            const segments = Array.isArray(transcript.transcript_split)
+                ? transcript.transcript_split.filter(item => item && typeof item === 'object')
+                : [];
+
+            let bodyContent = '';
+
+            if (segments.length > 0) {
+                bodyContent = segments.map(segment => {
+                    const speakerName = escapeHTML(segment.speaker || 'Speaker');
+                    const speakerRole = segment.role ? `<span class="segment-role">${escapeHTML(segment.role)}</span>` : '';
+                    return `
+                        <div class="transcript-segment">
+                            <div class="segment-speaker">${speakerName}${speakerRole}</div>
+                            <div class="segment-text">${convertTextToParagraphs(segment.text)}</div>
+                        </div>
+                    `;
+                }).join('');
+            } else if (typeof transcript.transcript === 'string' && transcript.transcript.trim() !== '') {
+                bodyContent = `<div class="segment-text">${convertTextToParagraphs(transcript.transcript)}</div>`;
+            } else {
+                bodyContent = `
+                    <div class="error">
+                        <div class="error-message">Transcript content is unavailable</div>
+                    </div>
+                `;
+            }
+
+            displayArea.innerHTML = `
+                <div class="transcript-meta">
+                    <h3>${escapeHTML((transcript.ticker || '').toUpperCase())} Earnings Call Transcript</h3>
+                    <div class="meta-grid">
+                        ${transcript.date ? `<span><strong>Date:</strong> ${formatDate(transcript.date)}</span>` : ''}
+                        ${transcript.year && transcript.quarter ? `<span><strong>Fiscal:</strong> FY ${escapeHTML(String(transcript.year))} Q${escapeHTML(String(transcript.quarter))}</span>` : ''}
+                        ${transcript.earnings_timing ? `<span><strong>Timing:</strong> ${formatTiming(transcript.earnings_timing)}</span>` : ''}
                     </div>
                     ${participantMarkup ? `<div><strong>Participants:</strong></div>${participantMarkup}` : ''}
                 </div>
@@ -1074,6 +1149,7 @@
          */
         async function fetchTranscript(forceRefresh = false) {
             const tickerInput = document.getElementById('transcriptTicker');
+            const tickerSelect = document.getElementById('transcriptTicker');
             const fetchBtn = document.getElementById('transcriptFetchBtn');
             const displayArea = document.getElementById('transcriptDisplay');
             const statusEl = document.getElementById('transcriptStatus');
@@ -1101,6 +1177,18 @@
                 renderTranscript(cachedTranscript);
                 const statusText = formatTranscriptStatus(cachedTranscript);
                 statusEl.textContent = statusText || `Transcript loaded for ${ticker}`;
+            const ticker = tickerSelect.value;
+
+            if (!ticker) {
+                statusEl.textContent = '';
+                displayArea.innerHTML = '';
+                return;
+            }
+
+            if (!forceRefresh && transcriptCache[ticker]) {
+                const cachedTranscript = transcriptCache[ticker];
+                renderTranscript(cachedTranscript);
+                statusEl.textContent = formatTranscriptStatus(cachedTranscript);
                 return;
             }
 
@@ -1161,11 +1249,23 @@
             } catch (error) {
                 console.error('Error fetching transcript:', error);
                 statusEl.textContent = error.message || transcriptAvailabilityMessage;
+                const transcript = payload.data;
+                transcriptCache[ticker] = transcript;
+                renderTranscript(transcript);
+                statusEl.textContent = formatTranscriptStatus(transcript);
+            } catch (error) {
+                console.error('Error fetching transcript:', error);
+                statusEl.textContent = transcriptAvailabilityMessage;
+                const friendlyMessage = error.message && error.message.toLowerCase().includes('not found')
+                    ? 'We do not yet have a transcript for this ticker. Please check back soon.'
+                    : (error.message || 'Please try again later.');
+
                 displayArea.innerHTML = `
                     <div class="error">
                         <div class="error-icon">⚠️</div>
                         <div class="error-message">Unable to load transcript</div>
                         <div class="error-details">${escapeHTML(error.message || 'Please try again later.')}</div>
+                        <div class="error-details">${escapeHTML(friendlyMessage)}</div>
                     </div>
                 `;
             } finally {
@@ -1213,6 +1313,7 @@
                 </div>
                 <div class="transcript-body">
                     <p>Enter a stock ticker symbol above to retrieve the latest transcript from API Ninjas.</p>
+                    <p>Select "Load Transcript" to pull the most recent earnings call for the chosen stock.</p>
                 </div>
             `;
 
@@ -1239,6 +1340,12 @@
 
             transcriptTickerInput.addEventListener('blur', () => {
                 transcriptTickerInput.value = (transcriptTickerInput.value || '').trim().toUpperCase();
+            });
+
+            document.getElementById('transcriptTicker').addEventListener('change', () => {
+                if (activeTab === 'transcripts') {
+                    fetchTranscript();
+                }
             });
 
             fetchStockData();
