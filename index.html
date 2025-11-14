@@ -72,6 +72,45 @@
             justify-content: space-between;
         }
 
+        .tab-navigation {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            border: 2px solid transparent;
+            color: #1f2937;
+            background: #e5f2ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 16px rgba(59, 130, 246, 0.25);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: #ffffff;
+            box-shadow: 0 8px 16px rgba(99, 102, 241, 0.4);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
         .timestamp {
             color: #666;
             font-size: 0.9rem;
@@ -119,6 +158,113 @@
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .transcript-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .transcript-controls label {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .transcript-controls select,
+        .transcript-controls input[type="text"] {
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-size: 1rem;
+            background: #ffffff;
+            color: #111827;
+            box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
+            min-width: 180px;
+        }
+
+        .transcript-container {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 16px 30px rgba(15, 23, 42, 0.15);
+            color: #1f2937;
+            min-height: 200px;
+        }
+
+        .transcript-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .transcript-meta h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .transcript-meta .meta-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 24px;
+            font-size: 0.95rem;
+            color: #475569;
+        }
+
+        .transcript-participants {
+            list-style: none;
+            padding-left: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 20px;
+            margin: 0;
+            color: #334155;
+        }
+
+        .transcript-body {
+            border-top: 1px solid rgba(148, 163, 184, 0.3);
+            padding-top: 20px;
+            max-height: 420px;
+            overflow-y: auto;
+        }
+
+        .transcript-segment {
+            margin-bottom: 18px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+        }
+
+        .segment-speaker {
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+
+        .segment-role {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            margin-left: 8px;
+        }
+
+        .segment-text {
+            color: #334155;
+            line-height: 1.7;
+        }
+
+        .transcript-body p {
+            margin-bottom: 14px;
+            color: #334155;
+            line-height: 1.7;
+        }
+
+        .transcript-body p:last-child {
+            margin-bottom: 0;
         }
 
         /* Table Styles */
@@ -298,6 +444,16 @@
                 width: 100%;
             }
 
+            .transcript-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .transcript-controls select,
+            .transcript-controls button {
+                width: 100%;
+            }
+
             th, td {
                 padding: 12px 8px;
                 font-size: 0.9rem;
@@ -338,27 +494,54 @@
 
         <!-- Main Content -->
         <div class="content">
-            <!-- Controls -->
-            <div class="controls">
-                <div class="timestamp" id="timestamp"></div>
-                <div class="button-group">
-                    <button class="btn-refresh" id="refreshBtn" onclick="fetchStockData()">
-                        🔄 Refresh Data
-                    </button>
-                    <button class="btn-export" id="exportBtn" onclick="exportToCSV()">
-                        📥 Export to CSV
-                    </button>
-                </div>
+            <div class="tab-navigation">
+                <button class="tab-button active" data-tab="prices">📈 Stock Prices</button>
+                <button class="tab-button" data-tab="transcripts">📝 Earnings Transcripts</button>
             </div>
 
-            <!-- Data Display Area -->
-            <div id="dataDisplay"></div>
+            <div id="pricesTab" class="tab-panel active">
+                <!-- Controls -->
+                <div class="controls">
+                    <div class="timestamp" id="timestamp"></div>
+                    <div class="button-group">
+                        <button class="btn-refresh" id="refreshBtn" onclick="fetchStockData()">
+                            🔄 Refresh Data
+                        </button>
+                        <button class="btn-export" id="exportBtn" onclick="exportToCSV()">
+                            📥 Export to CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Data Display Area -->
+                <div id="dataDisplay"></div>
+            </div>
+
+            <div id="transcriptsTab" class="tab-panel">
+                <div class="transcript-controls">
+                    <label for="transcriptTicker">Stock Ticker</label>
+                    <input
+                        id="transcriptTicker"
+                        type="text"
+                        inputmode="uppercase"
+                        aria-label="Enter stock ticker for transcript"
+                        placeholder="e.g., MSFT"
+                    />
+                    <button class="btn-refresh" id="transcriptFetchBtn">🔎 Load Transcript</button>
+                </div>
+                <div class="timestamp" id="transcriptStatus"></div>
+                <div id="transcriptDisplay" class="transcript-container"></div>
+            </div>
         </div>
     </div>
 
     <script>
         // Global state management
         let stockData = [];
+        const transcriptCache = {};
+        let activeTab = 'prices';
+        let hasLoadedInitialTranscript = false;
+        const transcriptAvailabilityMessage = 'Enter a stock ticker (for example, MSFT) to request the latest earnings call transcript from API Ninjas.';
 
         /**
          * Fetches stock data from the serverless API
@@ -484,6 +667,513 @@
         }
 
         /**
+         * Toggles visible tab based on user selection
+         * @param {string} tab - Tab key to activate
+         */
+        function setActiveTab(tab) {
+            if (!tab || tab === activeTab) {
+                return;
+            }
+
+            activeTab = tab;
+
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.toggle('active', button.dataset.tab === tab);
+            });
+
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.toggle('active', panel.id === `${tab}Tab`);
+            });
+
+            if (tab === 'transcripts' && !hasLoadedInitialTranscript) {
+                hasLoadedInitialTranscript = true;
+                fetchTranscript();
+            }
+        }
+
+        /**
+         * Escapes HTML special characters to prevent XSS
+         * @param {string} value - Raw string input
+         * @returns {string}
+         */
+        function escapeHTML(value) {
+            if (typeof value !== 'string') {
+                return '';
+            }
+
+            return value
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        /**
+         * Converts multiline text into HTML paragraphs
+         * @param {string} text - Transcript text
+         * @returns {string}
+         */
+        function convertTextToParagraphs(text) {
+            if (typeof text !== 'string') {
+                return '';
+            }
+
+            return text
+                .split(/\n{2,}/)
+                .map(paragraph => paragraph.trim())
+                .filter(Boolean)
+                .map(paragraph => {
+                    const sanitized = escapeHTML(paragraph);
+                    return `<p>${sanitized.replace(/\n/g, '<br>')}</p>`;
+                })
+                .join('');
+        }
+
+        /**
+         * Formats date strings for display
+         * @param {string} value - Date value in YYYY-MM-DD format
+         * @returns {string}
+         */
+        function formatDate(value) {
+            if (!value) {
+                return '';
+            }
+
+            let parsedDate = null;
+
+            if (value instanceof Date) {
+                parsedDate = value;
+            } else if (typeof value === 'number') {
+                const timestamp = value > 1e12 ? value : value * 1000;
+                parsedDate = new Date(timestamp);
+            } else if (typeof value === 'string') {
+                const trimmed = value.trim();
+
+                if (trimmed) {
+                    parsedDate = new Date(trimmed.includes('T') ? trimmed : `${trimmed}T00:00:00Z`);
+
+                    if (Number.isNaN(parsedDate.getTime())) {
+                        parsedDate = new Date(trimmed);
+                    }
+                }
+            }
+
+            if (parsedDate && !Number.isNaN(parsedDate.getTime())) {
+                return parsedDate.toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+
+            return typeof value === 'string' ? escapeHTML(value) : String(value);
+        }
+
+        /**
+         * Converts earnings timing key to human readable text
+         * @param {string} value - Timing key (e.g. after_market)
+         * @returns {string}
+         */
+        function formatTiming(value) {
+            if (!value) {
+                return '';
+            }
+
+            const safeValue = String(value).trim();
+
+            if (!safeValue) {
+                return '';
+            }
+
+            return safeValue
+                .split(/[_\s]+/)
+                .filter(Boolean)
+                .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+                .join(' ');
+        }
+
+        /**
+         * Builds a status summary for transcript metadata
+         * @param {Object} transcript - Transcript payload
+         * @returns {string}
+         */
+        function formatTranscriptStatus(transcript) {
+            if (!transcript || typeof transcript !== 'object') {
+                return '';
+            }
+
+            const pieces = [];
+
+            const callDate = transcript.call_date || transcript.date || transcript.release_date || transcript.earnings_date;
+
+            if (callDate) {
+                const formattedDate = formatDate(callDate);
+
+                if (formattedDate) {
+                    pieces.push(`Earnings call date: ${formattedDate}`);
+                }
+            }
+
+            const timestampValue = transcript.timestamp ?? transcript.call_timestamp ?? transcript.call_time ?? transcript.datetime ?? transcript.call_datetime ?? transcript.event_time;
+
+            if (typeof timestampValue === 'number') {
+                const multiplier = timestampValue > 1e12 ? 1 : 1000;
+                const eventDate = new Date(timestampValue * multiplier);
+
+                if (!Number.isNaN(eventDate.getTime())) {
+                    pieces.push(`Recorded: ${eventDate.toLocaleString()}`);
+                }
+            } else if (typeof timestampValue === 'string') {
+                const eventDate = new Date(timestampValue);
+
+                if (!Number.isNaN(eventDate.getTime())) {
+                    pieces.push(`Recorded: ${eventDate.toLocaleString()}`);
+                }
+            }
+
+            const fiscalYear = transcript.fiscal_year ?? transcript.year;
+            const fiscalQuarter = transcript.fiscal_quarter ?? transcript.quarter ?? transcript.quarter_number ?? transcript.quarter_label;
+
+            if (fiscalYear || fiscalQuarter) {
+                const labelParts = [];
+
+                if (fiscalYear) {
+                    labelParts.push(escapeHTML(String(fiscalYear)));
+                }
+
+                if (fiscalQuarter) {
+                    const quarterString = String(fiscalQuarter);
+                    const formattedQuarter = quarterString.toUpperCase().startsWith('Q')
+                        ? quarterString.toUpperCase()
+                        : `Q${quarterString}`;
+                    labelParts.push(escapeHTML(formattedQuarter));
+                }
+
+                pieces.push(`Fiscal ${labelParts.join(' ')}`.trim());
+            }
+
+            const periodLabel = transcript.period || transcript.report_period;
+
+            if (periodLabel) {
+                pieces.push(`Period: ${escapeHTML(String(periodLabel))}`);
+            }
+
+            const timingValue = transcript.earnings_timing || transcript.timing;
+
+            if (timingValue) {
+                const timingLabel = formatTiming(timingValue);
+
+                if (timingLabel) {
+                    pieces.push(`Timing: ${timingLabel}`);
+                }
+            }
+
+            const source = transcript.source || transcript.provider;
+
+            if (source) {
+                pieces.push(`Source: ${escapeHTML(String(source))}`);
+            }
+
+            return pieces.join(' • ');
+        }
+
+        /**
+         * Renders transcript details into the UI
+         * @param {Object} transcript - Transcript payload
+         */
+        function renderTranscript(transcript) {
+            const displayArea = document.getElementById('transcriptDisplay');
+
+            if (!transcript) {
+                displayArea.innerHTML = `
+                    <div class="error">
+                        <div class="error-message">No transcript data available</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const tickerSymbol = (transcript.ticker || transcript.symbol || transcript.stock_symbol || transcript.company_ticker || '')
+                .toString()
+                .toUpperCase();
+            const callDate = transcript.call_date || transcript.date || transcript.release_date || transcript.earnings_date;
+            const fiscalYear = transcript.fiscal_year ?? transcript.year;
+            const fiscalQuarter = transcript.fiscal_quarter ?? transcript.quarter ?? transcript.quarter_number ?? transcript.quarter_label;
+            const timingValue = transcript.earnings_timing || transcript.timing;
+            const heading = transcript.title || transcript.call_title || transcript.headline || (tickerSymbol ? `${tickerSymbol} Earnings Call Transcript` : 'Earnings Call Transcript');
+
+            const participantSources = [
+                transcript.participants,
+                transcript.speakers,
+                transcript.attendees,
+                transcript.moderators
+            ];
+
+            const participantList = participantSources.find(value => Array.isArray(value) && value.length > 0) || [];
+            const participants = participantList
+                .map(entry => {
+                    if (!entry) {
+                        return null;
+                    }
+
+                    if (typeof entry === 'string') {
+                        return { name: entry };
+                    }
+
+                    if (typeof entry === 'object') {
+                        const name = entry.name || entry.speaker || entry.person || entry.presenter || entry.title;
+                        const role = entry.role || entry.position || entry.job_title || entry.title;
+                        const company = entry.company || entry.organization || entry.firm;
+
+                        if (!name && !role && !company) {
+                            return null;
+                        }
+
+                        return { name, role, company };
+                    }
+
+                    return null;
+                })
+                .filter(Boolean);
+
+            const participantMarkup = participants.length > 0
+                ? `<ul class="transcript-participants">
+                        ${participants.map(participant => {
+                            const name = participant.name ? escapeHTML(participant.name) : 'Participant';
+                            const role = participant.role ? ` — ${escapeHTML(participant.role)}` : '';
+                            const company = participant.company ? `, ${escapeHTML(participant.company)}` : '';
+                            return `<li><strong>${name}</strong>${role}${company}</li>`;
+                        }).join('')}
+                   </ul>`
+                : '';
+
+            const segmentSources = [
+                transcript.transcript_split,
+                transcript.segments,
+                transcript.transcript,
+                transcript.transcript_items,
+                transcript.paragraphs,
+                transcript.entries,
+                transcript.blocks,
+                transcript.content
+            ];
+
+            const rawSegments = segmentSources.find(value => Array.isArray(value) && value.length > 0) || [];
+
+            const normalizedSegments = rawSegments
+                .map(segment => {
+                    if (!segment) {
+                        return null;
+                    }
+
+                    if (typeof segment === 'string') {
+                        return { text: segment };
+                    }
+
+                    if (typeof segment === 'object') {
+                        const textValue = segment.text || segment.content || segment.statement || segment.message || segment.body || segment.response || segment.detail;
+
+                        if (!textValue) {
+                            return null;
+                        }
+
+                        const speakerName = segment.speaker || segment.name || segment.person || segment.presenter || segment.title || '';
+                        const roleValue = segment.role || segment.position || segment.job_title || (segment.title && segment.title !== speakerName ? segment.title : '');
+
+                        return {
+                            speaker: speakerName,
+                            role: roleValue && roleValue !== speakerName ? roleValue : '',
+                            text: textValue
+                        };
+                    }
+
+                    return null;
+                })
+                .filter(Boolean);
+
+            let bodyContent = '';
+
+            if (normalizedSegments.length > 0) {
+                bodyContent = normalizedSegments.map(segment => {
+                    const hasSpeaker = Boolean(segment.speaker) || Boolean(segment.role);
+                    const speakerName = segment.speaker ? escapeHTML(segment.speaker) : 'Speaker';
+                    const roleMarkup = segment.role ? `<span class="segment-role">${escapeHTML(segment.role)}</span>` : '';
+                    const speakerMarkup = hasSpeaker ? `<div class="segment-speaker">${speakerName}${roleMarkup}</div>` : '';
+
+                    return `
+                        <div class="transcript-segment">
+                            ${speakerMarkup}
+                            <div class="segment-text">${convertTextToParagraphs(String(segment.text))}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            if (!bodyContent) {
+                const textCandidates = [
+                    transcript.transcript,
+                    transcript.content,
+                    transcript.text,
+                    transcript.body,
+                    transcript.raw_text,
+                    transcript.summary
+                ];
+
+                const fallbackText = textCandidates.find(value => typeof value === 'string' && value.trim().length > 0) || '';
+
+                if (fallbackText) {
+                    bodyContent = `<div class="segment-text">${convertTextToParagraphs(fallbackText)}</div>`;
+                } else {
+                    bodyContent = `
+                        <div class="error">
+                            <div class="error-message">Transcript content is unavailable</div>
+                        </div>
+                    `;
+                }
+            }
+
+            const fiscalDetails = [];
+
+            if (fiscalYear) {
+                fiscalDetails.push(escapeHTML(String(fiscalYear)));
+            }
+
+            if (fiscalQuarter) {
+                const quarterString = String(fiscalQuarter);
+                const normalizedQuarter = quarterString.toUpperCase().startsWith('Q')
+                    ? quarterString.toUpperCase()
+                    : `Q${quarterString}`;
+                fiscalDetails.push(escapeHTML(normalizedQuarter));
+            }
+
+            const metaEntries = [
+                callDate ? `<span><strong>Date:</strong> ${formatDate(callDate)}</span>` : '',
+                fiscalDetails.length > 0 ? `<span><strong>Fiscal:</strong> ${fiscalDetails.join(' ')}</span>` : '',
+                timingValue ? `<span><strong>Timing:</strong> ${formatTiming(timingValue)}</span>` : '',
+                tickerSymbol ? `<span><strong>Ticker:</strong> ${escapeHTML(tickerSymbol)}</span>` : ''
+            ].filter(Boolean).join('');
+
+            displayArea.innerHTML = `
+                <div class="transcript-meta">
+                    <h3>${escapeHTML(heading)}</h3>
+                    <div class="meta-grid">
+                        ${metaEntries || '<span>Transcript metadata unavailable</span>'}
+                    </div>
+                    ${participantMarkup ? `<div><strong>Participants:</strong></div>${participantMarkup}` : ''}
+                </div>
+                <div class="transcript-body">
+                    ${bodyContent}
+                </div>
+            `;
+        }
+
+        /**
+         * Fetches earnings transcript for the selected ticker
+         * @param {boolean} [forceRefresh=false] - Skip cache when true
+         */
+        async function fetchTranscript(forceRefresh = false) {
+            const tickerInput = document.getElementById('transcriptTicker');
+            const fetchBtn = document.getElementById('transcriptFetchBtn');
+            const displayArea = document.getElementById('transcriptDisplay');
+            const statusEl = document.getElementById('transcriptStatus');
+
+            const rawTicker = tickerInput.value || '';
+            const ticker = rawTicker.trim().toUpperCase();
+
+            if (!ticker) {
+                statusEl.textContent = 'Enter a stock ticker to request a transcript.';
+                displayArea.innerHTML = `
+                    <div class="transcript-meta">
+                        <h3>Earnings Call Transcripts</h3>
+                    </div>
+                    <div class="transcript-body">
+                        <p>Type a stock ticker above and select "Load Transcript" to retrieve the most recent earnings call.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            tickerInput.value = ticker;
+
+            if (!forceRefresh && transcriptCache[ticker]) {
+                const cachedTranscript = transcriptCache[ticker];
+                renderTranscript(cachedTranscript);
+                const statusText = formatTranscriptStatus(cachedTranscript);
+                statusEl.textContent = statusText || `Transcript loaded for ${ticker}`;
+                return;
+            }
+
+            displayArea.innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Retrieving transcript...</div>
+                </div>
+            `;
+            statusEl.textContent = 'Loading transcript...';
+            fetchBtn.disabled = true;
+
+            try {
+                const response = await fetch(`/api/transcripts?ticker=${encodeURIComponent(ticker)}`);
+                let payload;
+
+                try {
+                    payload = await response.json();
+                } catch (parseError) {
+                    throw new Error(`Unable to parse transcript response (${response.status})`);
+                }
+
+                if (!response.ok || !payload.success) {
+                    throw new Error(payload?.error || `Request failed with status ${response.status}`);
+                }
+
+                const transcripts = Array.isArray(payload.data)
+                    ? payload.data
+                    : (payload.data ? [payload.data] : []);
+
+                if (transcripts.length === 0) {
+                    throw new Error('No transcript was returned for this ticker.');
+                }
+
+                const selectedTranscript = transcripts.find(item => {
+                    if (!item || typeof item !== 'object') {
+                        return false;
+                    }
+
+                    const candidateTicker = (item.ticker || item.symbol || item.stock_symbol || item.company_ticker || '')
+                        .toString()
+                        .toUpperCase();
+                    return candidateTicker === ticker;
+                }) || transcripts[0];
+
+                const resolvedTicker = selectedTranscript && (selectedTranscript.ticker || selectedTranscript.symbol || selectedTranscript.stock_symbol || selectedTranscript.company_ticker);
+                const normalizedTickerValue = resolvedTicker ? resolvedTicker.toString().toUpperCase() : ticker;
+
+                const normalizedTranscript = {
+                    ...selectedTranscript,
+                    ticker: normalizedTickerValue
+                };
+
+                transcriptCache[ticker] = normalizedTranscript;
+                renderTranscript(normalizedTranscript);
+                const statusText = formatTranscriptStatus(normalizedTranscript);
+                statusEl.textContent = statusText || `Transcript loaded for ${normalizedTickerValue}`;
+            } catch (error) {
+                console.error('Error fetching transcript:', error);
+                statusEl.textContent = error.message || transcriptAvailabilityMessage;
+                displayArea.innerHTML = `
+                    <div class="error">
+                        <div class="error-icon">⚠️</div>
+                        <div class="error-message">Unable to load transcript</div>
+                        <div class="error-details">${escapeHTML(error.message || 'Please try again later.')}</div>
+                    </div>
+                `;
+            } finally {
+                fetchBtn.disabled = false;
+            }
+        }
+
+        /**
          * Exports current stock data to CSV format
          * Downloads file automatically
          */
@@ -517,6 +1207,40 @@
 
         // Initialize dashboard on page load
         document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('transcriptDisplay').innerHTML = `
+                <div class="transcript-meta">
+                    <h3>Earnings Call Transcripts</h3>
+                </div>
+                <div class="transcript-body">
+                    <p>Enter a stock ticker symbol above to retrieve the latest transcript from API Ninjas.</p>
+                </div>
+            `;
+
+            document.getElementById('transcriptStatus').textContent = transcriptAvailabilityMessage;
+
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    setActiveTab(button.dataset.tab);
+                });
+            });
+
+            document.getElementById('transcriptFetchBtn').addEventListener('click', event => {
+                event.preventDefault();
+                fetchTranscript(true);
+            });
+
+            const transcriptTickerInput = document.getElementById('transcriptTicker');
+
+            transcriptTickerInput.addEventListener('keyup', event => {
+                if (event.key === 'Enter') {
+                    fetchTranscript(true);
+                }
+            });
+
+            transcriptTickerInput.addEventListener('blur', () => {
+                transcriptTickerInput.value = (transcriptTickerInput.value || '').trim().toUpperCase();
+            });
+
             fetchStockData();
         });
 
